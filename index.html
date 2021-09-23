@@ -10,35 +10,27 @@
   </head>
 
   <body>
+    
     <header class="container-fluid">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-          <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Weather Dashboard</span>
-          </div>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <!--<li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-              </li>
-              This will be a sample of a nav-item for historical search
-            </ul>
-            -->
-            <form id="search-form" class="d-flex">
-              <input class="form-control me-2 custom-input-text" id="search-text" type="search" placeholder="Search City" aria-label="Search">
-              <button class="btn btn-outline-success" id="search-button" type="submit">Search</button>
-            </form>
-          </div>
-        </div>
-      </nav>
-      <!--<h1 class="display-6 text-center">Weather Dashboard</h1>-->
+      <h1 class="display-4 text-center">Weather Dashboard</h1>
     </header>
-    <div class="container">
-      <!--Weather Search Result-->
-    </div>
+    
+    <div class="container-fluid">
+      <div class="row d-flex align-items-start">
+        <div class="col-12 col-sm-12 col-md-4 col-lg-3 col-xl-3 p-2 border border-2">
+          <form id="search-form" class="mb-2">
+            <input id="search-input" class="form-input w-100 custom-input" type="text" placeholder="Search City">
+            <button id="search-button" class="btn btn-info btn-block">Search</button>
+          </form>
+        </div>
+        <div class="col-12 col-sm-12 col-md-8 col-lg-9 col-xl-9">
+          <!-- <h2>Showing results for <span id="result-text"></span></h2> -->
+          <div id="result-content" class="px-2"></div>
+        </div>
+      </div>
+
+    <!-- <div class="flex-row align-start align-stretch-md align-content-start align-content-stretch-md min-100-vh bg-primary">
+    </div> -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
