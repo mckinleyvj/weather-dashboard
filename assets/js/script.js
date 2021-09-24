@@ -62,7 +62,6 @@ function saveHistory(inpt) {
     );
     
     displayHistEl();
-
 }
 
 function displayHistEl () {
@@ -82,7 +81,7 @@ function displayHistEl () {
 
         $cityHistLi = $('<li>')
             .attr('data-index', x)
-            .addClass('btn btn-secondary btn-block px-2');
+            .addClass('btn btn-secondary btn-block px-2 d-flex justify-content-between');
 
         $liBtn = $('<button>')
             .addClass('btn-sm justify-content-md-end')
