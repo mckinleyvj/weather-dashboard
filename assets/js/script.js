@@ -3,50 +3,59 @@ var $searchFrmEl = $('#search-form');
 var $searchTxtEl = $('#search-input');
 var $searchBtnEl = $('#search-button');
 var $resultCtnEl = $('#result-content');
-var errorLblEl;
+var $errorLblEl;
+var $cityResultEl;
 
 // INPUT ELEMENTS VARIABLES
-var $searchInputTxt;
-var $cityResultEl;
+var searchInputTxt;
+
+// GLOBAL VARIABLES
+var APIKey = "467952e5cf21b6ecbc8d9a89b3ec05b9";
+var UoM;
+var temp_unit;
+var speed_unit;
+var latitu;
+var longti;
+
 
 function handleSearch(event) {
     event.preventDefault();
 
     //lets get the value of the text input
-    $searchInputTxt = $searchTxtEl.val().trim();
-    //console.log($searchInputTxt);
+    searchInputTxt = $searchTxtEl.val().trim();
 
     //if empty, return
-    if (!$searchInputTxt) {
+    if (!searchInputTxt) {
 
         console.log("Error: Input string not found.");
 
-        if (errorLblEl) {
-            errorLblEl.remove();
+        if ($errorLblEl) {
+            $errorLblEl.remove();
         }        
 
-        errorLblEl = $('<label>')
+        $errorLblEl = $('<label>')
             .attr('type', 'text')
             .addClass('custom-error')
             .append('*Error: Please enter a value');
 
-        $searchFrmEl.append(errorLblEl);
+        $searchFrmEl.append($errorLblEl);
 
         $($searchTxtEl.focus());
         return;
     }
 
-    if (errorLblEl) {
-        errorLblEl.remove();
+    if ($errorLblEl) {
+        $errorLblEl.remove();
     }
-    getWeatherAPI($searchInputTxt);
+    
+    getWeatherAPI(searchInputTxt);
 
     $($searchTxtEl).val('');
 }
 
 function getWeatherAPI(city) {
-    var APIKey = "467952e5cf21b6ecbc8d9a89b3ec05b9";
-    var APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey;
+
+    var APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
 
     fetch(APIUrl)
         .then(function (response) {
@@ -55,51 +64,118 @@ function getWeatherAPI(city) {
         })
         .then(function (data) {
             console.log(data);
-            displayData(data);
+            displaySearchResult(data);
+            getCurrWeatherAPI(data);
+        })
+        .catch(function (err) {
+            console.log(err);
+        });
+
+    $($searchTxtEl.focus());
+}
+
+function getCurrWeatherAPI(stats) {
+    latitu = stats.coord.lat;
+    longti = stats.coord.lon;
+    var exclusions = "minutely,hourly,daily,alerts"
+
+    var requestURL = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitu + "&lon=" + longti + "&exclude="+ exclusions + "&appid=" + APIKey + "&units=" + UoM;
+
+    fetch(requestURL)
+        .then(function(response) {
+            return response.json();           
+        })
+        .then(function(data) {
+            console.log(data);
+            displayWeatherContents(data);
         })
         .catch(function (err) {
             console.log(err);
         });
 }
 
-function displayData(info) {
+function displaySearchResult(info) {
     
-    var $cityName = info.name;
-    var $cityDate = moment(info.dt,"X").format("DD/MM/YYYY");
-    var $weatherIcon;
+    $resultCtnEl.text('');
 
-    for (i=0;i<info.weather.length;i++) {
-        $weatherIcon = 'http://openweathermap.org/img/wn/' + info.weather[i].icon + '.png';
-    }
+    var cityName = info.name;
+    var currentDate = moment(info.dt,"X").format("DD/MM/YYYY");
+    var weatherIcon = 'http://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
 
-    console.log($weatherIcon);
-    console.log($cityName);
-    console.log($cityDate);
     //CREATE SEARCH RESULT HEADER ELEMENTS
     $cityResultEl = $('<h5>')
-        .addClass('text-uppercase px-2 border border-2')
-        .append($cityName);
+        .addClass('text-uppercase px-2')
+        .append(cityName);
 
-    var $cityDate = $('<i>')
+    $cityDate = $('<i>')
         .addClass('custom-text')
-        .append(' [' + $cityDate + '] ');
+        .append(' [' + currentDate + '] ');
     
-    var $weatherIconEl = $('<img>')
-        .attr('src', $weatherIcon);
+    $weatherIconEl = $('<img>')
+        .attr('alt', 'Icon of current weather')
+        .attr('src', weatherIcon);
 
     var $cd = $cityResultEl.append($cityDate);
     $cd.append($weatherIconEl);
 
-    //CREATE CITY WEATHER ELEMENTS
-
-
-
-
     // Append elements to main result container
+    $resultCtnEl.addClass('border border-2');
     $resultCtnEl.append($cd);
-    
-
+    return;
 }
+
+function displayWeatherContents(i) {
+    var currTemp = i.current.temp;
+    var windSpd = i.current.wind_speed;
+    var humidity = i.current.humidity;
+    var UVIndex = i.current.uvi;
+    var UVStatus;
+
+    if (UVIndex < 6) {
+        UVStatus = "p-2 bg-success text-white rounded-3";
+    }else if (UVIndex >= 6 && UVIndex <= 8) {
+        UVStatus = "p-2 bg-warning text-dark rounded-3";
+    }else if (UVIndex >= 8) {
+        UVStatus = "p-2 bg-danger text-white rounded-3";
+    }
+
+    $statsTemp = $('<p>')
+        .addClass('px-2')
+        .append('Temperature: ' + currTemp + " " + temp_unit);
+
+    $statsWindSpd = $('<p>')
+        .addClass('px-2')
+        .append('Wind: ' + windSpd + " " + speed_unit);
+
+    $statsHumid = $('<p>')
+        .addClass('px-2')
+        .append('Humidity: ' + humidity + " %");
+
+    $UVBg = $('<span>')
+        .addClass(UVStatus)
+        .append(UVIndex);
+
+    $statsUV = $('<p>')
+        .addClass('px-2')
+        .append('UV Index: ');
+
+    $statsUV.append($UVBg);
+
+    $resultCtnEl.append($statsTemp,$statsWindSpd,$statsHumid,$statsUV);
+}
+
+function initiate() {
+    UoM = "imperial";
+    if (UoM === "metric") {
+        temp_unit = "\xB0" + "C";
+        speed_unit = "KPH";
+    }else if (UoM === "imperial") {
+        temp_unit = "\xB0" + "F";
+        speed_unit = "MPH";
+    }
+}
+
+initiate();
 
 $($searchFrmEl).on('submit', handleSearch);
 
