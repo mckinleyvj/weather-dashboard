@@ -17,6 +17,44 @@ var speed_unit;
 var latitu;
 var longti;
 
+// STORAGE VARIABLES
+var arrHistSearch = [];
+var storedHist;
+
+// STORED PROCEDURES
+function loadHistory() {
+    storedHist = JSON.parse(localStorage.getItem("search_history"));
+
+    if (storedHist !== null) {
+        var arrUnsorted = [];
+        for (var j=0;j<storedHist.length;j++) {
+            arrUnsorted.push(storedHist[j]);
+        }
+        arrHistSearch = arrUnsorted;
+    }else {
+        return;
+    }
+}
+
+function saveHistory(inpt) {
+    
+    loadHistory();
+
+    var dt_inpt = inpt.toLowerCase();
+
+    console.log(arrHistSearch.length);
+    for (i=0;i<arrHistSearch.length;i++) {
+        if (arrHistSearch[i].includes(dt_inpt)) {
+            //if the data exists, do nothing
+            return;
+        }
+    }
+    
+    arrHistSearch.push(dt_inpt);
+    localStorage.setItem(
+        "search_history", JSON.stringify(arrHistSearch)
+    );
+}
 
 function handleSearch(event) {
     event.preventDefault();
@@ -44,10 +82,11 @@ function handleSearch(event) {
         return;
     }
 
+    //if !empty, proceed
     if ($errorLblEl) {
         $errorLblEl.remove();
     }
-    
+
     getWeatherAPI(searchInputTxt);
 
     $($searchTxtEl).val('');
@@ -59,16 +98,19 @@ function getWeatherAPI(city) {
 
     fetch(APIUrl)
         .then(function (response) {
-            //console.log(response);
+            if (!response.ok) {
+                throw response.json();
+            }
             return response.json();
         })
         .then(function (data) {
             console.log(data);
+            saveHistory(city);
             displaySearchResult(data);
             getCurrWeatherAPI(data);
         })
         .catch(function (err) {
-            console.log(err);
+            alert("Error: City not found.");
         });
 
     $($searchTxtEl.focus());
@@ -83,6 +125,9 @@ function getCurrWeatherAPI(stats) {
 
     fetch(requestURL)
         .then(function(response) {
+            if (!response.ok) {
+                throw response.json();
+            }
             return response.json();           
         })
         .then(function(data) {
@@ -90,7 +135,7 @@ function getCurrWeatherAPI(stats) {
             displayWeatherContents(data);
         })
         .catch(function (err) {
-            console.log(err);
+            alert("Error: Something went wrong. Redo search.");
         });
 }
 
