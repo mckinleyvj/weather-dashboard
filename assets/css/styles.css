@@ -1,3 +1,27 @@
+#root {
+	--red: rgb(255, 0, 0);
+}
+
 .custom-input {
 	margin-bottom: 10px;
+}
+
+.custom-col {
+	padding-right: 0px;
+	padding-left: 0px;
+}
+
+.custom-text {
+	font-style: normal;
+}
+
+.jumbotron-custom {
+	padding: 2rem 1rem;
+	background-color: #e9ecef;
+}
+
+.custom-error {
+	color: var(--red);
+	margin-bottom: 0;
+	line-height: 0;
 }
