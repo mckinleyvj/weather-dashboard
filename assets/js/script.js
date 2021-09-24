@@ -9,6 +9,7 @@ var $resultCtnEl = $('#result-content');
 var $errorLblEl;
 var $cityResultEl;
 var $cityHistLi;
+var $liBtn;
 
 // INPUT ELEMENTS VARIABLES
 var searchInputTxt;
@@ -25,110 +26,6 @@ var longti;
 var arrHistSearch = [];
 var storedHist;
 
-// STORAGE FUNCTIONS
-function loadHistory() {
-    storedHist = JSON.parse(localStorage.getItem("search_history"));
-
-    if (storedHist !== null) {
-        var arrUnsorted = [];
-        for (var j=0;j<storedHist.length;j++) {
-            arrUnsorted.push(storedHist[j]);
-        }
-        arrHistSearch = arrUnsorted;
-
-        displayHistEl();
-
-    }else {
-        return;
-    }
-}
-
-function saveHistory(inpt) {
-    
-    var dt_inpt = inpt.toLowerCase();
-
-    console.log(arrHistSearch.length);
-    for (i=0;i<arrHistSearch.length;i++) {
-        if (arrHistSearch[i].includes(dt_inpt)) {
-            //if the data exists, do nothing
-            return;
-        }
-    }
-    
-    //if none of the input matches with any existing items in array, push as new item
-    arrHistSearch.push(dt_inpt);
-    localStorage.setItem(
-        "search_history", JSON.stringify(arrHistSearch)
-    );
-    
-    displayHistEl();
-}
-
-function displayHistEl () {
-    
-    $($histContEl).remove();
-
-    $histContEl = $('<div>')
-            .attr('id','history-container')
-            .addClass('mb-2');
-        
-    $searchContEl.append($histContEl);
-
-    for (x=0;x<arrHistSearch.length;x++) {
-
-        var cityItem = arrHistSearch[x];
-        var cap_cityItem = cityItem.charAt(0).toUpperCase() + cityItem.slice(1);
-
-        $cityHistLi = $('<li>')
-            .attr('data-index', x)
-            .addClass('btn btn-secondary btn-block px-2 d-flex justify-content-between');
-
-        $liBtn = $('<button>')
-            .addClass('btn-sm justify-content-md-end')
-            .append('🗑');
-        
-        $cityHistLi.append(cap_cityItem,$liBtn);
-        
-        $histContEl.append($cityHistLi);
-    }
-}
-
-function handleSearch(event) {
-    event.preventDefault();
-
-    //lets get the value of the text input
-    searchInputTxt = $searchTxtEl.val().trim();
-
-    //if empty, show error label, focus on textbox and do nothing
-    if (!searchInputTxt) {
-
-        console.log("Error: Input string not found.");
-
-        if ($errorLblEl) {
-            $errorLblEl.remove();
-        }        
-
-        $errorLblEl = $('<label>')
-            .attr('type', 'text')
-            .addClass('custom-error')
-            .append('*Error: Please enter a value');
-
-        $searchFrmEl.append($errorLblEl);
-
-        $($searchTxtEl.focus());
-        return;
-    }
-
-    //if !empty, clear error label, open function and clear textbox value
-    if ($errorLblEl) {
-        $errorLblEl.remove();
-    }
-
-    getWeatherAPI(searchInputTxt);
-
-    $($searchTxtEl).val('');
-}
-
 // WEATHER APIs
 function getWeatherAPI(city) {
 
@@ -143,16 +40,19 @@ function getWeatherAPI(city) {
             return response.json();
         })
         .then(function (data) {
-            //console.log(data);
-            saveHistory(city);
+            saveHistory(data.name);
+            //clearHistEl();
+            //loadHistory();
+            displayHistEl();
             displaySearchResult(data);
             getCurrWeatherAPI(data);
+
+            return;
         })
         .catch(function (err) {
-            alert("Error: City not found.");
+            alert("Error: City not found.\n" + err.message);
         });
-
-    $($searchTxtEl.focus());
+    
 }
 
 function getCurrWeatherAPI(stats) {
@@ -169,15 +69,55 @@ function getCurrWeatherAPI(stats) {
             }
             return response.json();           
         })
-        .then(function(data) {
-            console.log(data);
-            displayWeatherContents(data);
+        .then(function(dt) {
+            console.log(dt);
+            displayWeatherContents(dt);
+            return;
         })
         .catch(function (err) {
-            alert("Error: Something went wrong. Redo search.");
+            alert("Error: Something went wrong. Redo search.\n" + err.message);
         });
+    
 }
 
+// STORAGE FUNCTIONS
+function loadHistory() {
+    storedHist = JSON.parse(localStorage.getItem("search_history"));
+
+    if (storedHist !== null) {
+        var arrUnsorted = [];
+        for (var j=0;j<storedHist.length;j++) {
+            arrUnsorted.push(storedHist[j]);
+        }
+        arrHistSearch = arrUnsorted;
+        console.log(arrHistSearch);
+
+    }else {
+        return;
+    }
+}
+
+function saveHistory(inpt) {
+    
+    var dt_inpt = inpt.toLowerCase();
+
+    //console.log(arrHistSearch.length);
+    for (i=0;i<arrHistSearch.length;i++) {
+        if (arrHistSearch[i].includes(dt_inpt)) {
+            //if the data exists, do nothing
+            return;
+        }
+    }
+    
+    //if none of the input matches with any existing items in array, push as new item
+    arrHistSearch.push(dt_inpt);
+    localStorage.setItem(
+        "search_history", JSON.stringify(arrHistSearch)
+    );
+    console.log(arrHistSearch);
+}
+
+// PROCESS
 function displaySearchResult(info) {
     
     //clear the result content first
@@ -185,7 +125,7 @@ function displaySearchResult(info) {
 
     var cityName = info.name;
     var currentDate = moment(info.dt,"X").format("DD/MM/YYYY");
-    var weatherIcon = 'http://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
+    var weatherIconURL = 'http://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
 
     //CREATE SEARCH RESULT HEADER ELEMENTS
     $cityResultEl = $('<h5>')
@@ -198,7 +138,7 @@ function displaySearchResult(info) {
     
     $weatherIconEl = $('<img>')
         .attr('alt', 'Icon of current weather')
-        .attr('src', weatherIcon);
+        .attr('src', weatherIconURL);
 
     var $cd = $cityResultEl.append($cityDate);
     $cd.append($weatherIconEl);
@@ -206,7 +146,6 @@ function displaySearchResult(info) {
     // Append elements to main result container
     $resultCtnEl.addClass('border border-2');
     $resultCtnEl.append($cd);
-    return;
 }
 
 function displayWeatherContents(i) {
@@ -247,13 +186,113 @@ function displayWeatherContents(i) {
     $statsUV.append($UVBg);
 
     $resultCtnEl.append($statsTemp,$statsWindSpd,$statsHumid,$statsUV);
+
 }
 
-function initiate() {
+function displayHistEl() {
+
+        // $($cityHistLi).remove();
+        // $($liBtn).remove();
+        $($histContEl).text('');    
+
+    for (x=0;x<arrHistSearch.length;x++) {
+
+        var cityItem = arrHistSearch[x];
+        var cap_cityItem = cityItem.charAt(0).toUpperCase() + cityItem.slice(1);
+
+        $cityHistLi = $('<li>')
+            .attr('data-index', x)
+            .addClass('btn btn-secondary btn-block px-2 d-flex justify-content-between');
+
+        $liBtn = $('<button>')
+            .attr('id', 'delete-item')
+            .addClass('btn-sm justify-content-md-end')
+            .append('🗑');
+        
+        $cityHistLi.append(cap_cityItem,$liBtn);
+        
+        $histContEl.append($cityHistLi);
+    }
+
+    
+}
+
+// function handleRedoSearch(event) {
+
+//     var trgt = event.target;
+//     var name = trgt.textContent;
+//     var search_name = name.slice(0, name.length - 2);
+
+//     if ($(trgt).is("li")) {
+//         console.log(search_name);
+//         getWeatherAPI(search_name);
+        
+//         // var index = element.parentElement.attr("data-index");
+//         // var name = element.parentElement.text();
+//         // arrHistSearch.splice(index, 1);
+//         // console.log(name);
+//     }else if ($(trgt).is("button")) {
+//         console.log("noo");
+//         // var index = element.parentElement.attr("data-index");
+//         // var name = element.parentElement.text();
+//         // arrHistSearch.splice(index, 1);
+//         // console.log(name);
+//     }
+
+//     //getWeatherAPI(name);
+// }
+
+function handleSearch(event) {
+
+    event.preventDefault();
+    
+    if ($(this).attr('id') === 'search-form') {
+        searchInputTxt = $searchTxtEl.val().trim();
+    }else if ($(this).attr('id') === 'history-container') {
+        var trgt = event.target;
+        var name = trgt.textContent;
+        var search_name = name.slice(0, name.length - 2);
+        searchInputTxt = search_name;
+    }
+
+    //if empty, show error label, focus on textbox and do nothing
+    if (!searchInputTxt) {
+
+        console.log("Error: Input string not found.");
+
+        if ($errorLblEl) {
+            $errorLblEl.remove();
+        }        
+
+        $errorLblEl = $('<label>')
+            .attr('type', 'text')
+            .addClass('custom-error')
+            .append('*Error: Please enter a value');
+
+        $searchFrmEl.append($errorLblEl);
+
+        $($searchTxtEl.focus());
+        return;
+    }
+
+    //if !empty, clear error label, open function and clear textbox value
+    if ($errorLblEl) {
+        $errorLblEl.remove();
+    }
+
+    getWeatherAPI(searchInputTxt);
+
+    searchInputTxt = "";
+    $($searchTxtEl).val('');
+    $($searchTxtEl.focus());
+}
+
+function initial_val() {
 
     loadHistory();
+    displayHistEl();
 
-    UoM = "imperial";
+    UoM = "metric";
     if (UoM === "metric") {
         temp_unit = "\xB0" + "C";
         speed_unit = "KPH";
@@ -263,8 +302,11 @@ function initiate() {
     }
 }
 
-initiate();
+initial_val();
 
 $($searchFrmEl).on('submit', handleSearch);
+$($histContEl).on('click', handleSearch);
+
+
 
     
