@@ -41,7 +41,7 @@ function getWeatherAPI(city) {
         })
         .then(function (data) {
             console.log();
-            saveHistory(data.name + ', ' + (data.sys.country).toUpperCase()); //MODIFIED THIS
+            saveHistory(data.name + ', ' + (data.sys.country).toUpperCase());
             displayHistEl();
             displaySearchResult(data);
             getCurrWeatherAPI(data);
@@ -131,7 +131,7 @@ function displaySearchResult(info) {
 
     //CREATE SEARCH RESULT HEADER ELEMENTS
     $cityResultEl = $('<h5>')
-        .addClass('text-uppercase px-2')
+        .addClass('text-uppercase px-2 text-warning')
         .append(cityName);
 
     $cityDate = $('<i>')
@@ -255,14 +255,14 @@ function handleEvent(event) {
     event.preventDefault();
     event.stopPropagation();
     
-    var trig_el = event.target.id;
+    var trig_el = event.target;
 
-    if (trig_el === 'search-button') {
+    if (trig_el.id === 'search-button') {
         searchInputTxt = $searchTxtEl.val();
         searchHandler();
     }
     
-    if (trig_el === 'list-item') {
+    if (trig_el.id === 'list-item') {
         var trgt = event.target;
         var name = trgt.textContent;
         var search_name = name.slice(0, name.length - 2);
@@ -270,10 +270,9 @@ function handleEvent(event) {
         searchHandler();
     }
     
-    if (trig_el === 'delete-item') {
-        //var trig_el_index = trig_el_index.dataset.index;
-        var elem = event.target.parentElement.getAttribute("data-index");
-        arrHistSearch.splice(elem, 1);
+    if (trig_el.id === 'delete-item') {
+        var index = trig_el.parentElement.getAttribute("data-index");
+        arrHistSearch.splice(index, 1);
 
         storeData();
         displayHistEl();
@@ -297,11 +296,8 @@ function initial_val() {
 
 initial_val();
 
-//$($searchFrmEl).on('submit', handleEvent);
-
 $(window).ready(function () {
 
     $(window).on('click', handleEvent);
-    //$(window).on('click', $($liBtn), deleteItem);
 
 });
