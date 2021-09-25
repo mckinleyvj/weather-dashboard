@@ -6,6 +6,7 @@ var $searchFrmEl = $('#search-form');
 var $searchTxtEl = $('#search-input');
 var $searchBtnEl = $('#search-button');
 var $resultCtnEl = $('#result-content');
+var $fivedayCtnEl = $('#five-day-content');
 var $errorLblEl;
 var $cityResultEl;
 var $cityHistLi;
@@ -19,71 +20,33 @@ var APIKey = "467952e5cf21b6ecbc8d9a89b3ec05b9";
 var UoM;
 var temp_unit;
 var speed_unit;
-var latitu;
-var longti;
+var latitude;
+var longtitude;
 
 // STORAGE VARIABLES
 var arrHistSearch = [];
 var storedHist;
-
-// WEATHER APIs
-function getWeatherAPI(city) {
-
-    //Current Weather Data API
-    var APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
-    console.log(city);
-    fetch(APIUrl)
-        .then(function (response) {
-            if (!response.ok) {
-                throw response.json();
-            }
-            return response.json();
-        })
-        .then(function (data) {
-            console.log();
-            saveHistory(data.name + ', ' + (data.sys.country).toUpperCase());
-            displayHistEl();
-            displaySearchResult(data);
-            getCurrWeatherAPI(data);
-
-            return;
-        })
-        .catch(function (err) {
-            alert("Error: City not found.\n" + err.message);
-        });
-    
-}
-
-function getCurrWeatherAPI(stats) {
-    latitu = stats.coord.lat;
-    longti = stats.coord.lon;
-    var exclusions = "minutely,hourly,daily,alerts"
-
-    var requestURL = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitu + "&lon=" + longti + "&exclude="+ exclusions + "&appid=" + APIKey + "&units=" + UoM;
-
-    fetch(requestURL)
-        .then(function(response) {
-            if (!response.ok) {
-                throw response.json();
-            }
-            return response.json();           
-        })
-        .then(function(dt) {
-            console.log(dt);
-            displayWeatherContents(dt);
-            return;
-        })
-        .catch(function (err) {
-            alert("Error: Something went wrong. Redo search.\n" + err.message);
-        });
-    
-}
 
 // STORAGE FUNCTIONS
 function storeData() {
     localStorage.setItem(
         "search_history", JSON.stringify(arrHistSearch)
     );
+}
+
+function saveHistory(inpt) {
+    
+    var dt_inpt = inpt;
+    for (i=0;i<arrHistSearch.length;i++) {
+        if (arrHistSearch[i].includes(dt_inpt)) {
+            //if the data exists, do nothing
+            return;
+        }
+    }
+    //if none of the input matches with any existing items in array, push as new item
+    arrHistSearch.push(dt_inpt);
+
+    storeData();
 }
 
 function loadHistory() {
@@ -95,31 +58,142 @@ function loadHistory() {
             arrUnsorted.push(storedHist[j]);
         }
         arrHistSearch = arrUnsorted;
-        console.log(arrHistSearch);
-
     }else {
         return;
     }
 }
+// WEATHER APIs
+function getWeatherAPI(city) {
 
-function saveHistory(inpt) {
-    
-    var dt_inpt = inpt;
-    console.log(dt_inpt);
-    for (i=0;i<arrHistSearch.length;i++) {
-        if (arrHistSearch[i].includes(dt_inpt)) {
-            //if the data exists, do nothing
+    //Current Weather Data API
+    var APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
+
+    fetch(APIUrl, {
+        credentials: "same-origin",
+        referrerPolicy: "same-origin",
+      })
+        .then(function (response) {
+            if (!response.ok) {
+                throw response.json();
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            saveHistory(data.name + ', ' + (data.sys.country).toUpperCase());
+            displaySearchResult(data);
+            getCurrWeatherAPI(data);
+            displayHistEl();
             return;
-        }
-    }
+        })
+        .catch(function (err) {
+            alert("Error: City not found.\n" + err.message);
+        });
     
-    //if none of the input matches with any existing items in array, push as new item
-    arrHistSearch.push(dt_inpt);
-
-    storeData();
 }
 
-// PROCESS
+function getCurrWeatherAPI(stats) {
+    latitude = stats.coord.lat;
+    longtitude = stats.coord.lon;
+    //var exclusions = "minutely,hourly,daily,alerts";
+    var exclusions = "minutely,hourly,alerts";
+
+    var requestURL = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitude + "&lon=" + longtitude + "&exclude="+ exclusions + "&appid=" + APIKey + "&units=" + UoM;
+
+    fetch(requestURL, {
+        credentials: "same-origin",
+        referrerPolicy: "same-origin",
+    })
+        .then(function(response) {
+            if (!response.ok) {
+                throw response.json();
+            }
+            return response.json();           
+        })
+        .then(function(dt) {
+            console.log(dt);
+            displayWeatherContents(dt);
+            getFiveDayWeatherAPI(dt);
+            return;
+        })
+        .catch(function (err) {
+            alert("Error: Something went wrong. Redo search.\n" + err.message);
+        });
+    
+}
+
+function getFiveDayWeatherAPI(forecast) {
+
+    $fivedayCtnEl.text('');
+    $($inner_card_row).text('');
+
+    var $main_card = $('<h5>')
+        .addClass('text-uppercase px-2 text-warning custom-height align-middle border border-2 bg-dark')
+        .append('5-day Forecast');
+
+    var $inner_card = $('<div>')
+        //.addClass('container-fluid')
+        .attr('id', 'five-day-containers');
+
+    var $inner_card_row = $('<div>')
+        .addClass('row align-items-start custom-row');
+        //$fivedayCtnEl.addClass('border border-2 text-info bg-dark');
+
+    var forecastDaily = forecast.daily;
+
+    for (i=0;i<forecastDaily.length;i++) {
+
+        var $weatherContent = $('<div>')
+        .addClass('px-2 col-12 col-sm-12 col-md-6 col-lg-6 col-xl-2 border border-2 text-info bg-dark');
+
+        var forecastDt = moment(forecastDaily[i].dt,"X").format("DD/MM/YYYY");
+        var forecastIcon = 'https://openweathermap.org/img/wn/' + forecastDaily[i].weather[0].icon + '.png';
+        var forecastMaxTemp = forecastDaily[i].temp.max;
+        var forecastMinTemp = forecastDaily[i].temp.min;
+        var forecastWind = forecastDaily[i].wind_speed;
+        var forecastHumid = forecastDaily[i].humidity;
+
+        if (i === 5) {
+            break;
+        }
+        $forecastDt = $('<p>')
+        .addClass('p-2 text-warning fs-2')
+        .append(forecastDt);
+
+        $forecastIcon = $('<img>')
+        .attr('alt', 'Icon of forecast weather')
+        .attr('height', '50px')
+        .attr('width','50px')
+        .attr('src', forecastIcon);
+
+        $forecastMaxTemp = $('<p>')
+        .addClass('px-2 text-light')
+        .append("Max Temp.: " + forecastMaxTemp + " " + temp_unit);
+
+        $forecastMinTemp = $('<p>')
+        .addClass('px-2 text-light')
+        .append("Min Temp.: " + forecastMinTemp + " " + temp_unit);
+
+        $forecastWind = $('<p>')
+        .addClass('px-2 text-light')
+        .append('Wind: ' + forecastWind + ' ' + speed_unit);
+
+        $forecastHumid = $('<p>')
+        .addClass('px-2 text-light')
+        .append('Humidity: ' + forecastHumid + " %");
+
+        //$weatherContent.addClass('border border-2 border-warning')
+        $weatherContent.append($forecastDt,$forecastIcon,$forecastMaxTemp,$forecastMinTemp,$forecastWind,$forecastHumid);
+
+        $inner_card_row.append($weatherContent);
+       
+    }
+
+    $inner_card.append($inner_card_row);
+    $fivedayCtnEl.append($main_card,$inner_card);
+    return;
+}
+
+// DISPLAY ELEMENTS
 function displaySearchResult(info) {
     
     //clear the result content first
@@ -127,8 +201,8 @@ function displaySearchResult(info) {
 
     var cityName = info.name + ', ' + (info.sys.country).toUpperCase();
     var currentDate = moment(info.dt,"X").format("DD/MM/YYYY");
-    var weatherIconURL = 'http://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
-
+    var weatherIconURL = 'https://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
+    
     //CREATE SEARCH RESULT HEADER ELEMENTS
     $cityResultEl = $('<h5>')
         .addClass('text-uppercase px-2 text-warning')
@@ -189,6 +263,7 @@ function displayWeatherContents(i) {
 
     $resultCtnEl.append($statsTemp,$statsWindSpd,$statsHumid,$statsUV);
 
+    
 }
 
 function displayHistEl() {
@@ -218,7 +293,37 @@ function displayHistEl() {
 
 }
 
-function searchHandler() {
+// EVENTS
+function handleEvent(event) {
+
+    event.preventDefault();
+    event.stopPropagation();
+    
+    var trig_el = event.target;
+
+    if (trig_el.id === 'search-button') {
+        searchInputTxt = $searchTxtEl.val();
+        handleSearch();
+    }
+    
+    if (trig_el.id === 'list-item') {
+        var trgt = event.target;
+        var name = trgt.textContent;
+        var search_name = name.slice(0, name.length - 2);
+        searchInputTxt = search_name;
+        handleSearch();
+    }
+    
+    if (trig_el.id === 'delete-item') {
+        var index = trig_el.parentElement.getAttribute("data-index");
+        arrHistSearch.splice(index, 1);
+
+        storeData();
+        displayHistEl();
+    }
+}
+
+function handleSearch() {
     if (!searchInputTxt) {
 
         console.log("Error: Input string not found.");
@@ -250,36 +355,7 @@ function searchHandler() {
     $($searchTxtEl.focus());
 }
 
-function handleEvent(event) {
-
-    event.preventDefault();
-    event.stopPropagation();
-    
-    var trig_el = event.target;
-
-    if (trig_el.id === 'search-button') {
-        searchInputTxt = $searchTxtEl.val();
-        searchHandler();
-    }
-    
-    if (trig_el.id === 'list-item') {
-        var trgt = event.target;
-        var name = trgt.textContent;
-        var search_name = name.slice(0, name.length - 2);
-        searchInputTxt = search_name;
-        searchHandler();
-    }
-    
-    if (trig_el.id === 'delete-item') {
-        var index = trig_el.parentElement.getAttribute("data-index");
-        arrHistSearch.splice(index, 1);
-
-        storeData();
-        displayHistEl();
-    }
-}
-
-function initial_val() {
+function initiate() {
 
     loadHistory();
     displayHistEl();
@@ -294,7 +370,7 @@ function initial_val() {
     }
 }
 
-initial_val();
+initiate();
 
 $(window).ready(function () {
 

@@ -6,9 +6,21 @@
 	margin-bottom: 10px;
 }
 
+.custom-height {
+	height: 50px;
+	display: flex;
+	align-items: center;
+	margin-bottom: 0px;
+}
+
 .custom-col {
 	padding-right: 0px;
 	padding-left: 0px;
+}
+
+.custom-row {
+	margin-left: 0px;
+	margin-right: 0px;
 }
 
 .custom-text {
