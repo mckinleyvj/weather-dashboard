@@ -31,7 +31,7 @@ function getWeatherAPI(city) {
 
     //Current Weather Data API
     var APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
-
+    console.log(city);
     fetch(APIUrl)
         .then(function (response) {
             if (!response.ok) {
@@ -40,9 +40,8 @@ function getWeatherAPI(city) {
             return response.json();
         })
         .then(function (data) {
-            saveHistory(data.name);
-            //clearHistEl();
-            //loadHistory();
+            console.log();
+            saveHistory(data.name + ', ' + (data.sys.country).toUpperCase()); //MODIFIED THIS
             displayHistEl();
             displaySearchResult(data);
             getCurrWeatherAPI(data);
@@ -99,8 +98,9 @@ function loadHistory() {
 
 function saveHistory(inpt) {
     
-    var dt_inpt = inpt.toLowerCase();
-
+    //var dt_inpt = inpt.toLowerCase();
+    var dt_inpt = inpt;
+    console.log(dt_inpt);
     //console.log(arrHistSearch.length);
     for (i=0;i<arrHistSearch.length;i++) {
         if (arrHistSearch[i].includes(dt_inpt)) {
@@ -123,7 +123,7 @@ function displaySearchResult(info) {
     //clear the result content first
     $resultCtnEl.text('');
 
-    var cityName = info.name;
+    var cityName = info.name + ', ' + (info.sys.country).toUpperCase();
     var currentDate = moment(info.dt,"X").format("DD/MM/YYYY");
     var weatherIconURL = 'http://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
 
@@ -144,7 +144,7 @@ function displaySearchResult(info) {
     $cd.append($weatherIconEl);
 
     // Append elements to main result container
-    $resultCtnEl.addClass('border border-2');
+    $resultCtnEl.addClass('border border-2 bg-dark text-white');
     $resultCtnEl.append($cd);
 }
 
@@ -201,11 +201,13 @@ function displayHistEl() {
         var cap_cityItem = cityItem.charAt(0).toUpperCase() + cityItem.slice(1);
 
         $cityHistLi = $('<li>')
+            .attr('id', 'list-item')
             .attr('data-index', x)
             .addClass('btn btn-secondary btn-block px-2 d-flex justify-content-between');
 
         $liBtn = $('<button>')
             .attr('id', 'delete-item')
+            .attr('data-index', x)
             .addClass('btn-sm justify-content-md-end')
             .append('🗑');
         
@@ -217,45 +219,7 @@ function displayHistEl() {
     
 }
 
-// function handleRedoSearch(event) {
-
-//     var trgt = event.target;
-//     var name = trgt.textContent;
-//     var search_name = name.slice(0, name.length - 2);
-
-//     if ($(trgt).is("li")) {
-//         console.log(search_name);
-//         getWeatherAPI(search_name);
-        
-//         // var index = element.parentElement.attr("data-index");
-//         // var name = element.parentElement.text();
-//         // arrHistSearch.splice(index, 1);
-//         // console.log(name);
-//     }else if ($(trgt).is("button")) {
-//         console.log("noo");
-//         // var index = element.parentElement.attr("data-index");
-//         // var name = element.parentElement.text();
-//         // arrHistSearch.splice(index, 1);
-//         // console.log(name);
-//     }
-
-//     //getWeatherAPI(name);
-// }
-
-function handleSearch(event) {
-
-    event.preventDefault();
-    
-    if ($(this).attr('id') === 'search-form') {
-        searchInputTxt = $searchTxtEl.val().trim();
-    }else if ($(this).attr('id') === 'history-container') {
-        var trgt = event.target;
-        var name = trgt.textContent;
-        var search_name = name.slice(0, name.length - 2);
-        searchInputTxt = search_name;
-    }
-
-    //if empty, show error label, focus on textbox and do nothing
+function searchHandler() {
     if (!searchInputTxt) {
 
         console.log("Error: Input string not found.");
@@ -287,6 +251,51 @@ function handleSearch(event) {
     $($searchTxtEl.focus());
 }
 
+function handleEvent(event) {
+
+    event.preventDefault();
+    event.stopPropagation();
+    
+    var trig_el = event.target.id;
+    console.log(trig_el);
+    //$customBtn.attr('id') === "saveBtn"
+
+    if (trig_el === 'search-button') {
+        searchInputTxt = $searchTxtEl.val();
+        searchHandler();
+    }
+    
+    if (trig_el === 'list-item') {
+        var trgt = event.target;
+        var name = trgt.textContent;
+        var search_name = name.slice(0, name.length - 2);
+        searchInputTxt = search_name;
+        searchHandler();
+    }
+    
+    if (trig_el === 'delete-item') {
+        var trig_el_index = event.target;
+        console.log(trig_el_index.attr('data-index'));
+    }
+}
+
+// function deleteItem(event) {
+
+//     event.stopPropagation();
+//     if ($(this).children('li').attr('id') === 'delete-item') {
+
+//         // var list_items = $(this).children('li').length;
+//         // console.log($(this).children('li').attr('data-index'));
+//         // // for (x=0;x<list_items;x++) {
+            
+//         // // }
+//         // var trgt = $(this).children('li').attr('data-index');
+//         // // var i = trgt.attr('data-index');
+//         // console.log(trgt);
+//         console.log("Delete Item");
+//     }
+// }
+
 function initial_val() {
 
     loadHistory();
@@ -304,9 +313,11 @@ function initial_val() {
 
 initial_val();
 
-$($searchFrmEl).on('submit', handleSearch);
-$($histContEl).on('click', handleSearch);
+//$($searchFrmEl).on('submit', handleEvent);
 
+$(window).ready(function () {
 
+    $(window).on('click', handleEvent);
+    //$(window).on('click', $($liBtn), deleteItem);
 
-    
+});
