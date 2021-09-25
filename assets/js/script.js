@@ -80,6 +80,12 @@ function getCurrWeatherAPI(stats) {
 }
 
 // STORAGE FUNCTIONS
+function storeData() {
+    localStorage.setItem(
+        "search_history", JSON.stringify(arrHistSearch)
+    );
+}
+
 function loadHistory() {
     storedHist = JSON.parse(localStorage.getItem("search_history"));
 
@@ -98,10 +104,8 @@ function loadHistory() {
 
 function saveHistory(inpt) {
     
-    //var dt_inpt = inpt.toLowerCase();
     var dt_inpt = inpt;
     console.log(dt_inpt);
-    //console.log(arrHistSearch.length);
     for (i=0;i<arrHistSearch.length;i++) {
         if (arrHistSearch[i].includes(dt_inpt)) {
             //if the data exists, do nothing
@@ -111,10 +115,8 @@ function saveHistory(inpt) {
     
     //if none of the input matches with any existing items in array, push as new item
     arrHistSearch.push(dt_inpt);
-    localStorage.setItem(
-        "search_history", JSON.stringify(arrHistSearch)
-    );
-    console.log(arrHistSearch);
+
+    storeData();
 }
 
 // PROCESS
@@ -191,9 +193,7 @@ function displayWeatherContents(i) {
 
 function displayHistEl() {
 
-        // $($cityHistLi).remove();
-        // $($liBtn).remove();
-        $($histContEl).text('');    
+    $($histContEl).text('');    
 
     for (x=0;x<arrHistSearch.length;x++) {
 
@@ -216,7 +216,6 @@ function displayHistEl() {
         $histContEl.append($cityHistLi);
     }
 
-    
 }
 
 function searchHandler() {
@@ -257,8 +256,6 @@ function handleEvent(event) {
     event.stopPropagation();
     
     var trig_el = event.target.id;
-    console.log(trig_el);
-    //$customBtn.attr('id') === "saveBtn"
 
     if (trig_el === 'search-button') {
         searchInputTxt = $searchTxtEl.val();
@@ -274,27 +271,14 @@ function handleEvent(event) {
     }
     
     if (trig_el === 'delete-item') {
-        var trig_el_index = event.target;
-        console.log(trig_el_index.attr('data-index'));
+        //var trig_el_index = trig_el_index.dataset.index;
+        var elem = event.target.parentElement.getAttribute("data-index");
+        arrHistSearch.splice(elem, 1);
+
+        storeData();
+        displayHistEl();
     }
 }
-
-// function deleteItem(event) {
-
-//     event.stopPropagation();
-//     if ($(this).children('li').attr('id') === 'delete-item') {
-
-//         // var list_items = $(this).children('li').length;
-//         // console.log($(this).children('li').attr('data-index'));
-//         // // for (x=0;x<list_items;x++) {
-            
-//         // // }
-//         // var trgt = $(this).children('li').attr('data-index');
-//         // // var i = trgt.attr('data-index');
-//         // console.log(trgt);
-//         console.log("Delete Item");
-//     }
-// }
 
 function initial_val() {
 
