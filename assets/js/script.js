@@ -12,6 +12,8 @@ var $cityResultEl;
 var $cityHistLi;
 var $liBtn;
 
+var $linebreak = '<br>';
+
 // INPUT ELEMENTS VARIABLES
 var searchInputTxt;
 
@@ -79,6 +81,7 @@ function getWeatherAPI(city) {
             return response.json();
         })
         .then(function (data) {
+            console.log(data);
             saveHistory(data.name + ', ' + (data.sys.country).toUpperCase());
             displaySearchResult(data);
             getCurrWeatherAPI(data);
@@ -121,64 +124,139 @@ function getCurrWeatherAPI(stats) {
     
 }
 
+// DISPLAY ELEMENTS
+function displaySearchResult(info) {
+    
+    //clear the result content first
+    $resultCtnEl.text('');
+
+    var cityName = info.name + ', ' + (info.sys.country).toUpperCase();
+    var currentDate = moment(info.dt,"X").format("DD/MM/YYYY");
+    //enhancement - show day
+    var currentDay = moment(currentDate, "DD/MM/YYYY").format("dddd");
+    var weatherIconURL = 'https://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
+    
+    //CREATE SEARCH RESULT HEADER ELEMENTS
+    $cityResultEl = $('<h5>')
+        .addClass('text-uppercase px-2 text-dark border-bottom')
+        .append(cityName);
+
+    $cityDate = $('<i>')
+        .addClass('custom-text')
+        .append(' [ ' + currentDay + ', ' + currentDate + ' ] ');
+    
+    $weatherIconEl = $('<img>')
+        .attr('alt', 'Icon of current weather')
+        .attr('src', weatherIconURL);
+
+    var $cd = $cityResultEl.append($cityDate);
+    $cd.append($weatherIconEl);
+
+    // Append elements to main result container
+    $resultCtnEl.addClass('bg-info text-dark');
+    $resultCtnEl.append($cd);
+}
+
+function displayWeatherContents(i) {
+    var currTemp = i.current.temp;
+    var windSpd = i.current.wind_speed;
+    var humidity = i.current.humidity;
+    var UVIndex = i.current.uvi;
+    var UVStatus;
+
+    if (UVIndex < 6) {
+        UVStatus = "p-0 mb-0 bg-success text-white rounded-3";
+    }else if (UVIndex >= 6 && UVIndex <= 8) {
+        UVStatus = "p-0 mb-0 bg-warning text-dark rounded-3";
+    }else if (UVIndex >= 8) {
+        UVStatus = "p-0 mb-0 bg-danger text-white rounded-3";
+    }
+
+    $statsTemp = $('<p>')
+        .addClass('px-2 mb-1 fw-bold')
+        .append('Temperature :&emsp;' + currTemp + " " + temp_unit);
+
+    $statsWindSpd = $('<p>')
+        .addClass('px-2 mb-1')
+        .append('Wind :&emsp;' + windSpd + " " + speed_unit);
+
+    $statsHumid = $('<p>')
+        .addClass('px-2 mb-1')
+        .append('Humidity :&emsp;' + humidity + " %");
+
+    $UVBg = $('<span>')
+        .addClass(UVStatus)
+        .append(UVIndex);
+
+    $statsUV = $('<p>')
+        .addClass('px-2 mb-1')
+        .append('UV Index :&emsp;');
+
+    $statsUV.append($UVBg);
+
+    $resultCtnEl.append($statsTemp,$statsWindSpd,$statsHumid,$statsUV);
+    
+}
+
 function getFiveDayWeatherAPI(forecast) {
 
     $fivedayCtnEl.text('');
     $($inner_card_row).text('');
 
     var $main_card = $('<h5>')
-        .addClass('text-uppercase px-2 text-warning custom-height align-middle border border-2 bg-dark')
+        .addClass('text-uppercase px-3 text-dark custom-header align-middle bg-info border-bottom')
         .append('5-day Forecast');
 
     var $inner_card = $('<div>')
-        //.addClass('container-fluid')
-        .attr('id', 'five-day-containers');
+        .attr('id', 'five-day-containers')
+        .addClass('gx-2');
 
     var $inner_card_row = $('<div>')
-        .addClass('row align-items-start custom-row');
+        .addClass('row custom-row gx-2');
         //$fivedayCtnEl.addClass('border border-2 text-info bg-dark');
 
     var forecastDaily = forecast.daily;
 
-    for (i=0;i<forecastDaily.length;i++) {
+    for (i=1;i<forecastDaily.length;i++) {
 
         var $weatherContent = $('<div>')
-        .addClass('px-2 col-12 col-sm-12 col-md-6 col-lg-6 col-xl-2 border border-2 text-info bg-dark');
+        .addClass('px-3 col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 col-xxl-1 text-dark bg-info border-bottom');
 
         var forecastDt = moment(forecastDaily[i].dt,"X").format("DD/MM/YYYY");
+        var forecastDay = moment(forecastDt,"DD/MM/YYYY").format("dddd");
         var forecastIcon = 'https://openweathermap.org/img/wn/' + forecastDaily[i].weather[0].icon + '.png';
         var forecastMaxTemp = forecastDaily[i].temp.max;
         var forecastMinTemp = forecastDaily[i].temp.min;
         var forecastWind = forecastDaily[i].wind_speed;
         var forecastHumid = forecastDaily[i].humidity;
 
-        if (i === 5) {
+        if (i === 6) {
             break;
         }
-        $forecastDt = $('<p>')
-        .addClass('p-2 text-warning fs-2')
-        .append(forecastDt);
+        $forecastDt = $('<h6>')
+        .addClass('mt-2 mb-1 text-dark')
+        .append(forecastDay,$linebreak,forecastDt);
 
         $forecastIcon = $('<img>')
         .attr('alt', 'Icon of forecast weather')
         .attr('height', '50px')
         .attr('width','50px')
-        .attr('src', forecastIcon);
+        .attr('src', forecastIcon)
 
         $forecastMaxTemp = $('<p>')
-        .addClass('px-2 text-light')
+        .addClass('mt-2 mb-1 text-warning')
         .append("Max Temp.: " + forecastMaxTemp + " " + temp_unit);
 
         $forecastMinTemp = $('<p>')
-        .addClass('px-2 text-light')
+        .addClass('mt-2 mb-1 text-dark')
         .append("Min Temp.: " + forecastMinTemp + " " + temp_unit);
 
         $forecastWind = $('<p>')
-        .addClass('px-2 text-light')
+        .addClass('mt-2 mb-1 text-dark')
         .append('Wind: ' + forecastWind + ' ' + speed_unit);
 
         $forecastHumid = $('<p>')
-        .addClass('px-2 text-light')
+        .addClass('mt-2 mb-4 text-dark')
         .append('Humidity: ' + forecastHumid + " %");
 
         //$weatherContent.addClass('border border-2 border-warning')
@@ -193,79 +271,7 @@ function getFiveDayWeatherAPI(forecast) {
     return;
 }
 
-// DISPLAY ELEMENTS
-function displaySearchResult(info) {
-    
-    //clear the result content first
-    $resultCtnEl.text('');
-
-    var cityName = info.name + ', ' + (info.sys.country).toUpperCase();
-    var currentDate = moment(info.dt,"X").format("DD/MM/YYYY");
-    var weatherIconURL = 'https://openweathermap.org/img/wn/' + info.weather[0].icon + '.png';
-    
-    //CREATE SEARCH RESULT HEADER ELEMENTS
-    $cityResultEl = $('<h5>')
-        .addClass('text-uppercase px-2 text-warning')
-        .append(cityName);
-
-    $cityDate = $('<i>')
-        .addClass('custom-text')
-        .append(' [' + currentDate + '] ');
-    
-    $weatherIconEl = $('<img>')
-        .attr('alt', 'Icon of current weather')
-        .attr('src', weatherIconURL);
-
-    var $cd = $cityResultEl.append($cityDate);
-    $cd.append($weatherIconEl);
-
-    // Append elements to main result container
-    $resultCtnEl.addClass('border border-2 bg-dark text-white');
-    $resultCtnEl.append($cd);
-}
-
-function displayWeatherContents(i) {
-    var currTemp = i.current.temp;
-    var windSpd = i.current.wind_speed;
-    var humidity = i.current.humidity;
-    var UVIndex = i.current.uvi;
-    var UVStatus;
-
-    if (UVIndex < 6) {
-        UVStatus = "p-2 bg-success text-white rounded-3";
-    }else if (UVIndex >= 6 && UVIndex <= 8) {
-        UVStatus = "p-2 bg-warning text-dark rounded-3";
-    }else if (UVIndex >= 8) {
-        UVStatus = "p-2 bg-danger text-white rounded-3";
-    }
-
-    $statsTemp = $('<p>')
-        .addClass('px-2')
-        .append('Temperature: ' + currTemp + " " + temp_unit);
-
-    $statsWindSpd = $('<p>')
-        .addClass('px-2')
-        .append('Wind: ' + windSpd + " " + speed_unit);
-
-    $statsHumid = $('<p>')
-        .addClass('px-2')
-        .append('Humidity: ' + humidity + " %");
-
-    $UVBg = $('<span>')
-        .addClass(UVStatus)
-        .append(UVIndex);
-
-    $statsUV = $('<p>')
-        .addClass('px-2')
-        .append('UV Index: ');
-
-    $statsUV.append($UVBg);
-
-    $resultCtnEl.append($statsTemp,$statsWindSpd,$statsHumid,$statsUV);
-
-    
-}
-
+// SEARCH HISTORY ELEMENTS
 function displayHistEl() {
 
     $($histContEl).text('');    
@@ -278,7 +284,7 @@ function displayHistEl() {
         $cityHistLi = $('<li>')
             .attr('id', 'list-item')
             .attr('data-index', x)
-            .addClass('btn btn-secondary btn-block px-2 d-flex justify-content-between');
+            .addClass('btn btn-outline-secondary border-danger mb-1 d-flex justify-content-between align-items-center');
 
         $liBtn = $('<button>')
             .attr('id', 'delete-item')
@@ -291,9 +297,16 @@ function displayHistEl() {
         $histContEl.append($cityHistLi);
     }
 
+    return;
 }
 
-// EVENTS
+// PAGE EVENTS
+function clearForm() {
+    searchInputTxt = "";
+    $($searchTxtEl).val('');
+    $($searchTxtEl.focus());
+}
+
 function handleEvent(event) {
 
     event.preventDefault();
@@ -304,6 +317,7 @@ function handleEvent(event) {
     if (trig_el.id === 'search-button') {
         searchInputTxt = $searchTxtEl.val();
         handleSearch();
+        clearForm();
     }
     
     if (trig_el.id === 'list-item') {
@@ -320,6 +334,8 @@ function handleEvent(event) {
 
         storeData();
         displayHistEl();
+
+        clearForm();
     }
 }
 
@@ -350,9 +366,7 @@ function handleSearch() {
 
     getWeatherAPI(searchInputTxt);
 
-    searchInputTxt = "";
-    $($searchTxtEl).val('');
-    $($searchTxtEl.focus());
+    return;
 }
 
 function initiate() {
