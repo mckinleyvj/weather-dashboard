@@ -91,7 +91,6 @@ function getWeatherAPI(city) {
         .catch(function (err) {
             alert("Error: City not found.\n" + err.message);
         });
-    
 }
 
 function getCurrWeatherAPI(stats) {
@@ -121,7 +120,6 @@ function getCurrWeatherAPI(stats) {
         .catch(function (err) {
             alert("Error: Something went wrong. Redo search.\n" + err.message);
         });
-    
 }
 
 // DISPLAY ELEMENTS
@@ -209,11 +207,9 @@ function getFiveDayWeatherAPI(forecast) {
 
     var $inner_card = $('<div>')
         .attr('id', 'five-day-containers')
-        //.addClass('x-2');
 
     var $inner_card_row = $('<div>')
         .addClass('row custom-row');
-        //$fivedayCtnEl.addClass('border border-2 text-info bg-dark');
 
     var forecastDaily = forecast.daily;
 
@@ -260,11 +256,9 @@ function getFiveDayWeatherAPI(forecast) {
         .addClass('mt-2 mb-4 text-dark')
         .append('Humidity: ' + forecastHumid + " %");
 
-        //$weatherContent.addClass('border border-2 border-warning')
         $weatherContent.append($forecastDt,$forecastIcon,$forecastMaxTemp,$forecastMinTemp,$forecastWind,$forecastHumid);
 
         $inner_card_row.append($weatherContent);
-       
     }
 
     $inner_card.append($inner_card_row);
@@ -297,7 +291,6 @@ function displayHistEl() {
         
         $histContEl.append($cityHistLi);
     }
-
     return;
 }
 
@@ -364,9 +357,7 @@ function handleSearch() {
     if ($errorLblEl) {
         $errorLblEl.remove();
     }
-
     getWeatherAPI(searchInputTxt);
-
     return;
 }
 
