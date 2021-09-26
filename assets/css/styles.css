@@ -1,5 +1,6 @@
 #root {
 	--red: rgb(255, 0, 0);
+	--gray: #adb5bd;
 }
 
 .custom-input {
@@ -11,6 +12,15 @@
 	display: flex;
 	align-items: center;
 	margin-bottom: 0px;
+}
+
+.custom-bg {
+	background-color: darkcyan;
+	border-radius: 15px;
+}
+
+.custom-text-color {
+	color: darkcyan;
 }
 
 .custom-col {

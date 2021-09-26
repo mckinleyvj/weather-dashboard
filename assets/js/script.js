@@ -138,7 +138,7 @@ function displaySearchResult(info) {
     
     //CREATE SEARCH RESULT HEADER ELEMENTS
     $cityResultEl = $('<h5>')
-        .addClass('text-uppercase px-2 text-dark border-bottom')
+        .addClass('text-uppercase fw-bold px-2 text-white custom-bg border-bottom rounded-3')
         .append(cityName);
 
     $cityDate = $('<i>')
@@ -153,7 +153,7 @@ function displaySearchResult(info) {
     $cd.append($weatherIconEl);
 
     // Append elements to main result container
-    $resultCtnEl.addClass('bg-info text-dark');
+    $resultCtnEl.addClass('text-dark');
     $resultCtnEl.append($cd);
 }
 
@@ -165,11 +165,11 @@ function displayWeatherContents(i) {
     var UVStatus;
 
     if (UVIndex < 6) {
-        UVStatus = "p-0 mb-0 bg-success text-white rounded-3";
+        UVStatus = "p-1 mb-0 bg-success text-white rounded-3";
     }else if (UVIndex >= 6 && UVIndex <= 8) {
-        UVStatus = "p-0 mb-0 bg-warning text-dark rounded-3";
+        UVStatus = "p-1 mb-0 bg-warning text-dark rounded-3";
     }else if (UVIndex >= 8) {
-        UVStatus = "p-0 mb-0 bg-danger text-white rounded-3";
+        UVStatus = "p-1 mb-0 bg-danger text-white rounded-3";
     }
 
     $statsTemp = $('<p>')
@@ -177,11 +177,11 @@ function displayWeatherContents(i) {
         .append('Temperature :&emsp;' + currTemp + " " + temp_unit);
 
     $statsWindSpd = $('<p>')
-        .addClass('px-2 mb-1')
+        .addClass('px-2 mb-1 fw-bold')
         .append('Wind :&emsp;' + windSpd + " " + speed_unit);
 
     $statsHumid = $('<p>')
-        .addClass('px-2 mb-1')
+        .addClass('px-2 mb-1 fw-bold')
         .append('Humidity :&emsp;' + humidity + " %");
 
     $UVBg = $('<span>')
@@ -189,7 +189,7 @@ function displayWeatherContents(i) {
         .append(UVIndex);
 
     $statsUV = $('<p>')
-        .addClass('px-2 mb-1')
+        .addClass('px-2 mb-1 fw-bold')
         .append('UV Index :&emsp;');
 
     $statsUV.append($UVBg);
@@ -204,15 +204,15 @@ function getFiveDayWeatherAPI(forecast) {
     $($inner_card_row).text('');
 
     var $main_card = $('<h5>')
-        .addClass('text-uppercase px-3 text-dark custom-header align-middle bg-info border-bottom')
+        .addClass('text-uppercase fw-bold px-2 text-white align-middle border-bottom rounded-3 custom-bg custom-header')
         .append('5-day Forecast');
 
     var $inner_card = $('<div>')
         .attr('id', 'five-day-containers')
-        .addClass('gx-2');
+        //.addClass('x-2');
 
     var $inner_card_row = $('<div>')
-        .addClass('row custom-row gx-2');
+        .addClass('row custom-row');
         //$fivedayCtnEl.addClass('border border-2 text-info bg-dark');
 
     var forecastDaily = forecast.daily;
@@ -220,7 +220,7 @@ function getFiveDayWeatherAPI(forecast) {
     for (i=1;i<forecastDaily.length;i++) {
 
         var $weatherContent = $('<div>')
-        .addClass('px-3 col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 col-xxl-1 text-dark bg-info border-bottom');
+        .addClass('px-2 col-12 col-sm-12 col-md-6 col-lg-4 col-xl-3 text-dark border border-info rounded-3');
 
         var forecastDt = moment(forecastDaily[i].dt,"X").format("DD/MM/YYYY");
         var forecastDay = moment(forecastDt,"DD/MM/YYYY").format("dddd");
@@ -234,7 +234,7 @@ function getFiveDayWeatherAPI(forecast) {
             break;
         }
         $forecastDt = $('<h6>')
-        .addClass('mt-2 mb-1 text-dark')
+        .addClass('mt-2 mb-1 fw-bold text-dark')
         .append(forecastDay,$linebreak,forecastDt);
 
         $forecastIcon = $('<img>')
@@ -242,13 +242,14 @@ function getFiveDayWeatherAPI(forecast) {
         .attr('height', '50px')
         .attr('width','50px')
         .attr('src', forecastIcon)
+        .addClass('custom-bg')
 
         $forecastMaxTemp = $('<p>')
-        .addClass('mt-2 mb-1 text-warning')
+        .addClass('mt-2 mb-1 fw-bold text-danger')
         .append("Max Temp.: " + forecastMaxTemp + " " + temp_unit);
 
         $forecastMinTemp = $('<p>')
-        .addClass('mt-2 mb-1 text-dark')
+        .addClass('mt-2 mb-1 fw-bold text-success')
         .append("Min Temp.: " + forecastMinTemp + " " + temp_unit);
 
         $forecastWind = $('<p>')
@@ -284,7 +285,7 @@ function displayHistEl() {
         $cityHistLi = $('<li>')
             .attr('id', 'list-item')
             .attr('data-index', x)
-            .addClass('btn btn-outline-secondary border-danger mb-1 d-flex justify-content-between align-items-center');
+            .addClass('btn btn-outline-secondary text-light custom-bg mb-1 d-flex justify-content-between align-items-center');
 
         $liBtn = $('<button>')
             .attr('id', 'delete-item')
