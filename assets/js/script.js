@@ -7,6 +7,7 @@ var $searchTxtEl = $('#search-input');
 var $searchBtnEl = $('#search-button');
 var $resultCtnEl = $('#result-content');
 var $fivedayCtnEl = $('#five-day-content');
+var $myLocationBtnEl = $('search-location');
 var $errorLblEl;
 var $cityResultEl;
 var $cityHistLi;
@@ -19,6 +20,7 @@ var searchInputTxt;
 
 // GLOBAL VARIABLES
 var APIKey = "467952e5cf21b6ecbc8d9a89b3ec05b9";
+var loc_type;
 var UoM;
 var temp_unit;
 var speed_unit;
@@ -65,12 +67,21 @@ function loadHistory() {
     }
 }
 // WEATHER APIs
-function getWeatherAPI(city) {
+function getWeatherAPI(city,loc_typ) {
 
+    var APIUrl;
     //Current Weather Data API
-    var APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
+    if (loc_typ === "city") {
+        APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
+        doFetchAPI(APIUrl);
+    }else if (loc_typ === "coords") {
+        APIUrl = "https://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longtitude + "&appid=" + APIKey;
+        doFetchAPI(APIUrl);
+    }    
+}
 
-    fetch(APIUrl, {
+function doFetchAPI(url) {
+    fetch(url, {
         credentials: "same-origin",
         referrerPolicy: "same-origin",
       })
@@ -81,7 +92,6 @@ function getWeatherAPI(city) {
             return response.json();
         })
         .then(function (data) {
-            console.log(data);
             saveHistory(data.name + ', ' + (data.sys.country).toUpperCase());
             displaySearchResult(data);
             getCurrWeatherAPI(data);
@@ -91,7 +101,6 @@ function getWeatherAPI(city) {
         .catch(function (err) {
             alert("Error: City not found.\n" + err.message);
         });
-    
 }
 
 function getCurrWeatherAPI(stats) {
@@ -113,7 +122,6 @@ function getCurrWeatherAPI(stats) {
             return response.json();           
         })
         .then(function(dt) {
-            console.log(dt);
             displayWeatherContents(dt);
             getFiveDayWeatherAPI(dt);
             return;
@@ -209,11 +217,9 @@ function getFiveDayWeatherAPI(forecast) {
 
     var $inner_card = $('<div>')
         .attr('id', 'five-day-containers')
-        //.addClass('x-2');
 
     var $inner_card_row = $('<div>')
         .addClass('row custom-row');
-        //$fivedayCtnEl.addClass('border border-2 text-info bg-dark');
 
     var forecastDaily = forecast.daily;
 
@@ -260,7 +266,6 @@ function getFiveDayWeatherAPI(forecast) {
         .addClass('mt-2 mb-4 text-dark')
         .append('Humidity: ' + forecastHumid + " %");
 
-        //$weatherContent.addClass('border border-2 border-warning')
         $weatherContent.append($forecastDt,$forecastIcon,$forecastMaxTemp,$forecastMinTemp,$forecastWind,$forecastHumid);
 
         $inner_card_row.append($weatherContent);
@@ -305,6 +310,9 @@ function displayHistEl() {
 function clearForm() {
     searchInputTxt = "";
     $($searchTxtEl).val('');
+}
+
+function textFocus() {
     $($searchTxtEl.focus());
 }
 
@@ -317,8 +325,24 @@ function handleEvent(event) {
 
     if (trig_el.id === 'search-button') {
         searchInputTxt = $searchTxtEl.val();
+        loc_type = "city";
         handleSearch();
         clearForm();
+        textFocus();
+    }
+
+    if (trig_el.id === 'search-location') {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function showPosition(position) {
+            latitude = position.coords.latitude;
+            longtitude = position.coords.longitude;
+            loc_type = "coords";
+            getWeatherAPI("", loc_type);
+            clearForm();
+            });
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
     }
     
     if (trig_el.id === 'list-item') {
@@ -326,6 +350,7 @@ function handleEvent(event) {
         var name = trgt.textContent;
         var search_name = name.slice(0, name.length - 2);
         searchInputTxt = search_name;
+        loc_type = "city";
         handleSearch();
     }
     
@@ -337,6 +362,8 @@ function handleEvent(event) {
         displayHistEl();
 
         clearForm();
+        location.reload();
+        textFocus();
     }
 }
 
@@ -365,7 +392,7 @@ function handleSearch() {
         $errorLblEl.remove();
     }
 
-    getWeatherAPI(searchInputTxt);
+    getWeatherAPI(searchInputTxt, loc_type);
 
     return;
 }
@@ -383,6 +410,8 @@ function initiate() {
         temp_unit = "\xB0" + "F";
         speed_unit = "MPH";
     }
+
+    loc_type = "city";
 }
 
 initiate();
