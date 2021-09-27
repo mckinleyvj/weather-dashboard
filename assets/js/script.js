@@ -145,23 +145,24 @@ function displaySearchResult(info) {
     
     //CREATE SEARCH RESULT HEADER ELEMENTS
     $cityResultEl = $('<h5>')
-        .addClass('text-uppercase fw-bold px-2 text-white custom-bg border-bottom rounded-3')
+        .addClass('text-uppercase fw-bold px-2 text-white custom-bg custom-header border-bottom rounded-3')
         .append(cityName);
 
-    $cityDate = $('<i>')
-        .addClass('custom-text')
-        .append(' [ ' + currentDay + ', ' + currentDate + ' ] ');
+    $cityDate = $('<h5>')
+        .addClass('px-2 mb-2 fw-bold text-dark')
+        .append(currentDay + ', ' + currentDate);
     
     $weatherIconEl = $('<img>')
         .attr('alt', 'Icon of current weather')
         .attr('src', weatherIconURL);
 
-    var $cd = $cityResultEl.append($cityDate);
-    $cd.append($weatherIconEl);
+        //MODIFY THIS SECTION
+    var $cd = $cityResultEl.append($weatherIconEl);
+    //$cd.append();
 
     // Append elements to main result container
     $resultCtnEl.addClass('text-dark');
-    $resultCtnEl.append($cd);
+    $resultCtnEl.append($cd,$cityDate);
 }
 
 function displayWeatherContents(i) {
@@ -180,15 +181,15 @@ function displayWeatherContents(i) {
     }
 
     $statsTemp = $('<p>')
-        .addClass('px-2 mb-1 fw-bold')
+        .addClass('px-2 mb-1')
         .append('Temperature :&emsp;' + currTemp + " " + temp_unit);
 
     $statsWindSpd = $('<p>')
-        .addClass('px-2 mb-1 fw-bold')
+        .addClass('px-2 mb-1')
         .append('Wind :&emsp;' + windSpd + " " + speed_unit);
 
     $statsHumid = $('<p>')
-        .addClass('px-2 mb-1 fw-bold')
+        .addClass('px-2 mb-1')
         .append('Humidity :&emsp;' + humidity + " %");
 
     $UVBg = $('<span>')
@@ -196,11 +197,10 @@ function displayWeatherContents(i) {
         .append(UVIndex);
 
     $statsUV = $('<p>')
-        .addClass('px-2 mb-1 fw-bold')
+        .addClass('px-2 mb-1')
         .append('UV Index :&emsp;');
 
     $statsUV.append($UVBg);
-
     $resultCtnEl.append($statsTemp,$statsWindSpd,$statsHumid,$statsUV);
     
 }
@@ -240,7 +240,7 @@ function getFiveDayWeatherAPI(forecast) {
         }
         $forecastDt = $('<h6>')
         .addClass('mt-2 mb-1 fw-bold text-dark')
-        .append(forecastDay,$linebreak,forecastDt);
+        .append(forecastDay + ', ' + forecastDt);
 
         $forecastIcon = $('<img>')
         .attr('alt', 'Icon of forecast weather')
