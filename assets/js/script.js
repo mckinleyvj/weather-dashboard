@@ -335,6 +335,9 @@ function handleEvent(event) {
             longtitude = position.coords.longitude;
             loc_type = "coords";
             getWeatherAPI("", loc_type);
+            if ($errorLblEl) {
+                $errorLblEl.remove();
+            }
             clearForm();
             });
         } else {
@@ -384,7 +387,6 @@ function handleSearch() {
         return;
     }
 
-    //if !empty, clear error label, open function and clear textbox value
     if ($errorLblEl) {
         $errorLblEl.remove();
     }
