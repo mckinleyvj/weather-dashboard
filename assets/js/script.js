@@ -10,10 +10,8 @@ var $fivedayCtnEl = $('#five-day-content');
 var $myLocationBtnEl = $('search-location');
 var $errorLblEl;
 var $cityResultEl;
-var $cityHistLi;
-var $liBtn;
-
-var $linebreak = '<br>';
+var $cityHistLiEl;
+var $liBtnEl;
 
 // INPUT ELEMENTS VARIABLES
 var searchInputTxt;
@@ -28,58 +26,45 @@ var latitude;
 var longtitude;
 
 // STORAGE VARIABLES
-var arrHistSearch = [];
-var storedHist;
+var arr_hisSearch = [];
+var loc_storedHis;
 
 // STORAGE FUNCTIONS
 function storeData() {
     localStorage.setItem(
-        "search_history", JSON.stringify(arrHistSearch)
+        "search_history", JSON.stringify(arr_hisSearch)
     );
 }
 
 function saveHistory(inpt) {
     
     var dt_inpt = inpt;
-    for (i=0;i<arrHistSearch.length;i++) {
-        if (arrHistSearch[i].includes(dt_inpt)) {
+    for (i=0;i<arr_hisSearch.length;i++) {
+        if (arr_hisSearch[i].includes(dt_inpt)) {
             //if the data exists, do nothing
             return;
         }
     }
     //if none of the input matches with any existing items in array, push as new item
-    arrHistSearch.push(dt_inpt);
+    arr_hisSearch.push(dt_inpt);
 
     storeData();
 }
 
 function loadHistory() {
-    storedHist = JSON.parse(localStorage.getItem("search_history"));
+    loc_storedHis = JSON.parse(localStorage.getItem("search_history"));
 
-    if (storedHist !== null) {
+    if (loc_storedHis !== null) {
         var arrUnsorted = [];
-        for (var j=0;j<storedHist.length;j++) {
-            arrUnsorted.push(storedHist[j]);
+        for (var j=0;j<loc_storedHis.length;j++) {
+            arrUnsorted.push(loc_storedHis[j]);
         }
-        arrHistSearch = arrUnsorted;
+        arr_hisSearch = arrUnsorted;
     }else {
         return;
     }
 }
 // WEATHER APIs
-function getWeatherAPI(city,loc_typ) {
-
-    var APIUrl;
-    //Current Weather Data API
-    if (loc_typ === "city") {
-        APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
-        doFetchAPI(APIUrl);
-    }else if (loc_typ === "coords") {
-        APIUrl = "https://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longtitude + "&appid=" + APIKey;
-        doFetchAPI(APIUrl);
-    }    
-}
-
 function doFetchAPI(url) {
     fetch(url, {
         credentials: "same-origin",
@@ -101,6 +86,19 @@ function doFetchAPI(url) {
         .catch(function (err) {
             alert("Error: City not found.\n" + err.message);
         });
+}
+
+function getWeatherAPI(city,loc_typ) {
+
+    var APIUrl;
+    //Current Weather Data API
+    if (loc_typ === "city") {
+        APIUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey + "&units=" + UoM;
+        doFetchAPI(APIUrl);
+    }else if (loc_typ === "coords") {
+        APIUrl = "https://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longtitude + "&appid=" + APIKey;
+        doFetchAPI(APIUrl);
+    }    
 }
 
 function getCurrWeatherAPI(stats) {
@@ -280,25 +278,25 @@ function displayHistEl() {
 
     $($histContEl).text('');    
 
-    for (x=0;x<arrHistSearch.length;x++) {
+    for (x=0;x<arr_hisSearch.length;x++) {
 
-        var cityItem = arrHistSearch[x];
+        var cityItem = arr_hisSearch[x];
         var cap_cityItem = cityItem.charAt(0).toUpperCase() + cityItem.slice(1);
 
-        $cityHistLi = $('<li>')
+        $cityHistLiEl = $('<li>')
             .attr('id', 'list-item')
             .attr('data-index', x)
             .addClass('btn btn-outline-secondary text-light custom-bg mb-1 d-flex justify-content-between align-items-center');
 
-        $liBtn = $('<button>')
+        $liBtnEl = $('<button>')
             .attr('id', 'delete-item')
             .attr('data-index', x)
             .addClass('btn-sm justify-content-md-end')
             .append('🗑');
         
-        $cityHistLi.append(cap_cityItem,$liBtn);
+        $cityHistLiEl.append(cap_cityItem,$liBtnEl);
         
-        $histContEl.append($cityHistLi);
+        $histContEl.append($cityHistLiEl);
     }
     return;
 }
@@ -356,7 +354,7 @@ function handleEvent(event) {
     
     if (trig_el.id === 'delete-item') {
         var index = trig_el.parentElement.getAttribute("data-index");
-        arrHistSearch.splice(index, 1);
+        arr_hisSearch.splice(index, 1);
 
         storeData();
         displayHistEl();
